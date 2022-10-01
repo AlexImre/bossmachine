@@ -24,6 +24,13 @@ app.use(morgan('short'));
 const apiRouter = require('./server/api');
 app.use('/api', apiRouter);
 
+// Error handling
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  res.status(status).send(err.message);
+  console.log(err.message);
+});
+
 // This conditional is here for testing purposes:
 if (!module.parent) { 
   // Add your code to start the server listening at PORT below:

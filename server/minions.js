@@ -19,15 +19,9 @@ minionsRouter.get('/', (req, res, next) => {
 
 // Create a minion
 minionsRouter.post('/', (req, res, next) => {
-  // id assignment taken care of by DB??
-  // const newMinion = {
-  //   name: req.body.name,
-  //   title: req.body.title,
-  //   salary: Number(req.body.salary)
-  // }
   const newMinion = {
     name: req.body.name,
-    title: req.body.name,
+    title: req.body.title,
     salary: Number(req.body.salary),
     weaknesses: req.body.weaknesses
 }
@@ -37,21 +31,73 @@ minionsRouter.post('/', (req, res, next) => {
 
 // Get minion by id
 minionsRouter.get('/:minionId', (req, res, next) => {
-  const minionId = String(req.params.minionId);
+  const minionId = req.params.minionId;
+  const allMinions = getAllFromDatabase('minions');
+  
+  // Fail if ID is not a number
+  if (isNaN(minionId)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+  
+  // Fail if ID not in array
+  if(!allMinions[minionId]) {
+    const error = new Error('Invalid Id');
+    error.status = 404;
+    return next(error);
+  }
+
   const minion = getFromDatabaseById('minions', minionId);
-  res.status(200).send(minion);
+    res.status(200).send(minion);
 })
 
 // Update minion by id
 minionsRouter.put('/:minionId', (req, res, next) => {
-  const updatedMinion = req.body;
-  updateInstanceInDatabase('minions', updatedMinion);
-  res.status(200).send(updatedMinion);
+  const minion = getFromDatabaseById('minions', req.params.minionId);
+  minion.name = req.body.name;
+  minion.title = req.body.title;
+  minion.salary = req.body.salary;
+  minion.weakness = req.body.weakness;
+  const allMinions = getAllFromDatabase('minions');
+
+  // Fail if ID is not a number
+  if (isNaN(minion.id)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+  
+  // Fail if ID not in array
+  if(!allMinions[minion.id]) {
+    const error = new Error('Invalid Id');
+    error.status = 404;
+    return next(error);
+  }
+
+  updateInstanceInDatabase('minions', minion);
+  res.status(200).send(minion);
 })
 
 // Delete a minion
 minionsRouter.delete('/:minionId', (req, res, next) => {
-  const minionId = String(req.params.minionId)
+  const minionId = req.params.minionId;
+  const allMinions = getAllFromDatabase('minions');
+
+  // Fail if ID is not a number
+  if (isNaN(minionId)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+  
+  // Fail if ID not in array
+  if(!allMinions[minionId]) {
+    const error = new Error('Invalid Id');
+    error.status = 404;
+    return next(error);
+  }
+
   deleteFromDatabasebyId('minions', minionId);
   res.status(204).send();
 })
