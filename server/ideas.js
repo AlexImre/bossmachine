@@ -28,19 +28,68 @@ ideasRouter.post('/', (req, res, next) => {
 })
 
 // Select single idea
-ideasRouter.get('/ideaId', (req, res, next) => {
-    getFromDatabaseById('ideas', req.body.id);
-    res.status(200).send(req.body);
+ideasRouter.get('/:ideaId', (req, res, next) => {
+    const ideaId = req.params.ideaId;
+    if (isNaN(ideaId)){
+        const error = new Error('Id is non-numeric');
+        error.status = 404;
+        return next(error);
+    }
+    
+    const idea = getFromDatabaseById('ideas', ideaId);
+    // Fail if ID not in array
+    if(idea === null || idea === undefined) {
+    const error = new Error('Invalid Id');
+    error.status = 404;
+    return next(error);
+    }
+    
+    res.status(200).send(idea);
 })
 
 // Edit idea
-ideasRouter.put('/ideaId', (req, res, next) => {
-    updateInstanceInDatabase('ideas', req.body)
-    res.status(200).send(req.body);
+ideasRouter.put('/:ideaId', (req, res, next) => {
+    const ideaId = req.params.ideaId;
+
+    // Fail if ID is not a number
+    if (isNaN(ideaId)){
+        const error = new Error('Id is non-numeric');
+        error.status = 404;
+        return next(error);
+    }
+
+    const idea = getFromDatabaseById('ideas', ideaId);
+    // Fail if ID not in array
+    if(idea === null || idea === undefined) {
+        const error = new Error('Invalid Id');
+        error.status = 404;
+        return next(error);
+    }
+
+    const updatedIdea = req.body;
+    updateInstanceInDatabase('ideas', updatedIdea);
+    res.status(200).send(updatedIdea);
 })
 
 // Delete idea
-ideasRouter.delete('/ideaId', (req, res, next) => {
-    deleteFromDatabasebyId('ideas', req.body.id);
-    res.status(200).send();
+ideasRouter.delete('/:ideaId', (req, res, next) => {
+    const ideaId = req.params.ideaId;
+    // Fail if ID is not a number
+    if (isNaN(ideaId)){
+        const error = new Error('Id is non-numeric');
+        error.status = 404;
+        return next(error);
+    }
+
+    const allIdeas = getAllFromDatabase('ideas');
+    const idea = getFromDatabaseById('ideas', ideaId);
+    // Fail if ID not in array
+    if(!allIdeas.includes(idea)) {
+      const error = new Error('Invalid Id');
+      error.status = 404;
+      return next(error);
+    }
+
+    deleteFromDatabasebyId('ideas', ideaId);    
+    res.status(204).send();
 })
