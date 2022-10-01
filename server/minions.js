@@ -20,15 +20,24 @@ minionsRouter.get('/', (req, res, next) => {
 // Create a minion
 minionsRouter.post('/', (req, res, next) => {
   // id assignment taken care of by DB??
-  const newMinion = req.body;
-  addToDatabase('minions', newMinion);
-  res.status(201).send(newMinion);
+  // const newMinion = {
+  //   name: req.body.name,
+  //   title: req.body.title,
+  //   salary: Number(req.body.salary)
+  // }
+  const newMinion = {
+    name: req.body.name,
+    title: req.body.name,
+    salary: Number(req.body.salary),
+    weaknesses: req.body.weaknesses
+}
+  const newMinionAdded = addToDatabase('minions', newMinion);
+  res.status(201).send(newMinionAdded);
 })
 
 // Get minion by id
 minionsRouter.get('/:minionId', (req, res, next) => {
   const minionId = String(req.params.minionId);
-  console.log(`minion Id is: ${minionId}`);
   const minion = getFromDatabaseById('minions', minionId);
   res.status(200).send(minion);
 })
