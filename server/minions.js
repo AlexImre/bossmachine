@@ -101,3 +101,135 @@ minionsRouter.delete('/:minionId', (req, res, next) => {
   deleteFromDatabasebyId('minions', minionId);
   res.status(204).send();
 })
+
+// ------------------------ FUNCTIONS FOR WORK ------------------------
+minionsRouter.get('/:minionId/work', (req, res, next) => {
+  const minionId = req.params.minionId;
+  if (isNaN(minionId)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+
+  const allWork = getAllFromDatabase('work');
+  if (allWork === null || allWork === undefined) {
+    const error = new Error('invalid id');
+    error.status = 404;
+    return next(error);
+  }
+  
+  const minionWork = [];
+  for (let i = 0; i < allWork.length; i++) {
+      if (allWork[i].minionId === minionId){
+        minionWork.push(allWork[i]);
+      }
+  }
+
+  // const minionValidation = getFromDatabaseById('minion', minionId);
+  // if (minionValidation === null || minionValidation === undefined) {
+  //   const error = new Error('invalid minion id');
+  //   error.status = 404;
+  //   return next(error);
+  // }
+  res.status(200).send(minionWork);
+});
+ 
+
+
+
+
+
+  // if (isNaN(minionId)){
+  //   const error = new Error('Id is non-numeric');
+  //   error.status = 404;
+  //   return next(error);
+  // }
+  // const workAssignedToMinion = getFromDatabaseById('work', minionId);
+  // if (workAssignedToMinion === null || workAssignedToMinion === undefined) {
+  //   const error = new Error('invalid id');
+  //   error.status = 404;
+  //   return next(error);
+  // }
+
+minionsRouter.post('/:minionId/work', (req, res, next) => {
+  const minionId = req.params.minionId;
+  if (isNaN(minionId)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+
+  const workObject = {
+    title: req.body.title,
+    description: req.body.description,
+    hours: req.body.hours,
+    minionId: minionId
+  }
+  res.status(201).send(addToDatabase('work', workObject));
+});
+
+minionsRouter.put('/:minionId/work/:workId', (req, res, next) => {
+  const workId = req.params.workId;
+  const minionId = req.params.minionId;
+
+  if (isNaN(workId)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+
+  const workValidation = getFromDatabaseById('work', workId);
+  if (workValidation === null || workValidation === undefined) {
+    const error = new Error('invalid work id');
+    error.status = 404;
+    return next(error);
+  }
+
+  if (minionId !== req.body.minionId) {
+    const error = new Error('minionIds do not match');
+    error.status = 400;
+    return next(error);
+  }
+
+  const workObject = {
+    id: workId,
+    title: req.body.title,
+    description: req.body.description,
+    hours: req.body.hours,
+    minionId: req.body.minionId
+  }
+
+  const updatedWork = updateInstanceInDatabase('work', workObject);
+  if (updatedWork === null || updatedWork === undefined) {
+    const error = new Error('element not updated');
+    error.status = 404;
+    return next(error);
+  }
+
+  res.status(200).send(updatedWork);
+
+//   2) BONUS: /api/minions/:minionId/work routes
+//   PUT /api/minions/:minionId/work/:workId
+//     returns a 400 if a work ID with the wrong :minionId is requested:
+// Error: expected 400 "Bad Request", got 404 "Not Found"
+
+
+})
+
+minionsRouter.delete('/:minionId/work/:workId', (req, res, next) => {
+  const workId = req.params.workId;
+  if (isNaN(workId)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+
+  const deletedWork = deleteFromDatabasebyId('work', workId);
+  if (!deletedWork) {
+    const error = new Error('element not found');
+    error.status = 404;
+    return next(error);
+  }
+
+  res.status(204).send();
+})
