@@ -10,6 +10,17 @@ const { getAllFromDatabase,
   deleteFromDatabasebyId,
 } = require('./db');
 
+// Router Parameters
+minionsRouter.param('minionId', (req, res, next, id) => {
+  const minionId = id;
+  if (isNaN(minionId)){
+    const error = new Error('Id is non-numeric');
+    error.status = 404;
+    return next(error);
+  }
+  req.minionId = minionId;
+  next();
+});
 
 // Get all minions
 minionsRouter.get('/', (req, res, next) => {
@@ -32,16 +43,7 @@ minionsRouter.post('/', (req, res, next) => {
 // Get minion by id
 minionsRouter.get('/:minionId', (req, res, next) => {
   
-  const minionId = req.params.minionId;
-  // Fail if ID is not a number
-  if (isNaN(minionId)){
-    const error = new Error('Id is non-numeric');
-    error.status = 404;
-    return next(error);
-  }
-
-  const minion = getFromDatabaseById('minions', minionId);
-  
+  const minion = getFromDatabaseById('minions', req.minionId);
   // Fail if ID not in array
   if(minion === null || minion === undefined) {
     const error = new Error('Invalid Id');
@@ -54,16 +56,8 @@ minionsRouter.get('/:minionId', (req, res, next) => {
 
 // Update minion by id
 minionsRouter.put('/:minionId', (req, res, next) => {
-  const minionId = req.params.minionId;
-  // Fail if ID is not a number
-  if (isNaN(minionId)){
-    const error = new Error('Id is non-numeric');
-    error.status = 404;
-    return next(error);
-  }
 
-  const minion = getFromDatabaseById('minions', req.params.minionId);
-
+  const minion = getFromDatabaseById('minions', req.minionId);
   // Fail if ID not in array
   if(minion === null || minion === undefined) {
     const error = new Error('Invalid Id');
@@ -81,16 +75,9 @@ minionsRouter.put('/:minionId', (req, res, next) => {
 
 // Delete a minion
 minionsRouter.delete('/:minionId', (req, res, next) => {
-  const minionId = req.params.minionId;
-  // Fail if ID is not a number
-  if (isNaN(minionId)){
-    const error = new Error('Id is non-numeric');
-    error.status = 404;
-    return next(error);
-  }
   
   const allMinions = getAllFromDatabase('minions');
-  const minion = getFromDatabaseById('minions', minionId);
+  const minion = getFromDatabaseById('minions', req.minionId);
   // Fail if ID not in array
   if(!allMinions.includes(minion)) {
     const error = new Error('Invalid Id');
@@ -98,18 +85,12 @@ minionsRouter.delete('/:minionId', (req, res, next) => {
     return next(error);
   }
 
-  deleteFromDatabasebyId('minions', minionId);
+  deleteFromDatabasebyId('minions', req.minionId);
   res.status(204).send();
 })
 
 // ------------------------ FUNCTIONS FOR WORK ------------------------
 minionsRouter.get('/:minionId/work', (req, res, next) => {
-  const minionId = req.params.minionId;
-  if (isNaN(minionId)){
-    const error = new Error('Id is non-numeric');
-    error.status = 404;
-    return next(error);
-  }
 
   const allWork = getAllFromDatabase('work');
   if (allWork === null || allWork === undefined) {
@@ -120,36 +101,14 @@ minionsRouter.get('/:minionId/work', (req, res, next) => {
   
   const minionWork = [];
   for (let i = 0; i < allWork.length; i++) {
-      if (allWork[i].minionId === minionId){
+      if (allWork[i].minionId === req.minionId){
         minionWork.push(allWork[i]);
       }
   }
 
-  // const minionValidation = getFromDatabaseById('minion', minionId);
-  // if (minionValidation === null || minionValidation === undefined) {
-  //   const error = new Error('invalid minion id');
-  //   error.status = 404;
-  //   return next(error);
-  // }
   res.status(200).send(minionWork);
 });
  
-
-
-
-
-
-  // if (isNaN(minionId)){
-  //   const error = new Error('Id is non-numeric');
-  //   error.status = 404;
-  //   return next(error);
-  // }
-  // const workAssignedToMinion = getFromDatabaseById('work', minionId);
-  // if (workAssignedToMinion === null || workAssignedToMinion === undefined) {
-  //   const error = new Error('invalid id');
-  //   error.status = 404;
-  //   return next(error);
-  // }
 
 minionsRouter.post('/:minionId/work', (req, res, next) => {
   const minionId = req.params.minionId;
@@ -207,12 +166,6 @@ minionsRouter.put('/:minionId/work/:workId', (req, res, next) => {
   }
 
   res.status(200).send(updatedWork);
-
-//   2) BONUS: /api/minions/:minionId/work routes
-//   PUT /api/minions/:minionId/work/:workId
-//     returns a 400 if a work ID with the wrong :minionId is requested:
-// Error: expected 400 "Bad Request", got 404 "Not Found"
-
 
 })
 
